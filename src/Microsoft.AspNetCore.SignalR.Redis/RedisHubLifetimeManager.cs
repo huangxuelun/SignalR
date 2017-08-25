@@ -108,6 +108,17 @@ namespace Microsoft.AspNetCore.SignalR.Redis
 
                 allExceptTask = Task.WhenAll(tasks);
             });
+
+            channelName = _channelNamePrefix + ".internal.group";
+            _bus.Subscribe(channelName, async (c, data) =>
+            {
+                var d = DeserializeMessage<RemoveUser>(data);
+
+                if (await RemoveGroupAsyncCore(d.User, d.Group))
+                {
+                    // Send ack here
+                }
+            });
         }
 
         public override Task InvokeAllAsync(string methodName, object[] args)
@@ -296,20 +307,42 @@ namespace Microsoft.AspNetCore.SignalR.Redis
             }
         }
 
+        private struct RemoveUser
+        {
+            public string User;
+            public string Group;
+        }
+
         public override async Task RemoveGroupAsync(string connectionId, string groupName)
+        {
+            await RemoveGroupAsyncCore(connectionId, groupName);
+
+            // Send RemoveGroup to other servers and wait for an ack or timeout
+            using (var stream = new MemoryStream())
+            using (var writer = new JsonTextWriter(new StreamWriter(stream)))
+            {
+                _serializer.Serialize(writer, new RemoveUser { User = connectionId, Group = groupName });
+                await writer.FlushAsync();
+                await _bus.PublishAsync(_channelNamePrefix + ".internal.group", stream.ToArray());
+            }
+
+            //await ack here
+        }
+
+        private async Task<bool> RemoveGroupAsyncCore(string connectionId, string groupName)
         {
             var groupChannel = _channelNamePrefix + ".group." + groupName;
 
             GroupData group;
             if (!_groups.TryGetValue(groupChannel, out group))
             {
-                return;
+                return false;
             }
 
             var connection = _connections[connectionId];
             if (connection == null)
             {
-                return;
+                return false;
             }
 
             var feature = connection.Features.Get<IRedisFeature>();
@@ -337,6 +370,8 @@ namespace Microsoft.AspNetCore.SignalR.Redis
             {
                 group.Lock.Release();
             }
+
+            return true;
         }
 
         public void Dispose()

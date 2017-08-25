@@ -56,17 +56,17 @@ namespace ChatSample
 
             // To use Redis scaleout uncomment .AddRedis and uncomment Redis related lines below for presence
             services.AddSignalR()
-                 //.AddRedis()
+                 .AddRedis()
                 ;
             services.AddAuthentication().AddCookie();
 
-            services.AddSingleton(typeof(DefaultHubLifetimeManager<>), typeof(DefaultHubLifetimeManager<>));
-            services.AddSingleton(typeof(HubLifetimeManager<>), typeof(DefaultPresenceHublifetimeManager<>));
-            services.AddSingleton(typeof(IUserTracker<>), typeof(InMemoryUserTracker<>));
+            //services.AddSingleton(typeof(DefaultHubLifetimeManager<>), typeof(DefaultHubLifetimeManager<>));
+            //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(DefaultPresenceHublifetimeManager<>));
+            //services.AddSingleton(typeof(IUserTracker<>), typeof(InMemoryUserTracker<>));
 
-            //services.AddSingleton(typeof(RedisHubLifetimeManager<>), typeof(RedisHubLifetimeManager<>));
-            //services.AddSingleton(typeof(HubLifetimeManager<>), typeof(RedisPresenceHublifetimeManager<>));
-            //services.AddSingleton(typeof(IUserTracker<>), typeof(RedisUserTracker<>));
+            services.AddSingleton(typeof(RedisHubLifetimeManager<>), typeof(RedisHubLifetimeManager<>));
+            services.AddSingleton(typeof(HubLifetimeManager<>), typeof(RedisPresenceHublifetimeManager<>));
+            services.AddSingleton(typeof(IUserTracker<>), typeof(RedisUserTracker<>));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

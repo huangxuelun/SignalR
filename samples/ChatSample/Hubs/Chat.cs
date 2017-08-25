@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -17,6 +18,7 @@ namespace ChatSample.Hubs
         public override async Task OnConnectedAsync()
         {
             await Clients.Client(Context.ConnectionId).InvokeAsync("SetUsersOnline", await GetUsersOnline());
+            await Groups.AddAsync(Context.ConnectionId, "test");
 
             await base.OnConnectedAsync();
         }
@@ -33,7 +35,19 @@ namespace ChatSample.Hubs
 
         public async Task Send(string message)
         {
-            await Clients.All.InvokeAsync("Send", Context.User.Identity.Name, message);
+            if (message.StartsWith("remove "))
+            {
+                message = message.Substring(7);
+                await Groups.RemoveAsync(message, "test");
+            }
+            else
+                await Clients.Group("test").InvokeAsync("Send", Context.User.Identity.Name, message);
+            //await Clients.All.InvokeAsync("Send", Context.User.Identity.Name, message);
+        }
+
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            return Groups.RemoveAsync(Context.ConnectionId, "test");
         }
     }
 }
