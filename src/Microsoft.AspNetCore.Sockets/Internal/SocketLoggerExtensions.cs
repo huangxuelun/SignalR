@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Sockets.Internal
             LoggerMessage.Define<DateTime, string>(LogLevel.Debug, 1, "{time}: ConnectionId {connectionId}: Removing connection from the list of connections.");
 
         private static readonly Action<ILogger, DateTime, string, Exception> _failedDispose =
-            LoggerMessage.Define<DateTime, string>(LogLevel.Error, 2, "{time}: ConnectionId {connectionId}: Failed disposing connection.");
+            LoggerMessage.Define<DateTime, string>(LogLevel.Trace, 2, "{time}: ConnectionId {connectionId}: Failed disposing connection.");
 
         public static void CreatedNewConnection(this ILogger logger, string connectionId)
         {
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Sockets.Internal
 
         public static void FailedDispose(this ILogger logger, string connectionId, Exception exception)
         {
-            if (logger.IsEnabled(LogLevel.Error))
+            if (logger.IsEnabled(LogLevel.Trace))
             {
                 _failedDispose(logger, DateTime.Now, connectionId, exception);
             }

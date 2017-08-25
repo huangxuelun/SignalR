@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Internal
             LoggerMessage.Define(LogLevel.Trace, 10, "Shutting down connection.");
 
         private static readonly Action<ILogger, Exception> _shutdownWithError =
-            LoggerMessage.Define(LogLevel.Error, 11, "Connection is shutting down due to an error.");
+            LoggerMessage.Define(LogLevel.Trace, 11, "Connection is shutting down due to an error.");
 
         private static readonly Action<ILogger, string, Exception> _removeInvocation =
             LoggerMessage.Define<string>(LogLevel.Trace, 12, "Removing pending invocation {invocationId}.");
